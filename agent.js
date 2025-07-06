@@ -2,41 +2,45 @@ import Groq from "groq-sdk";
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function callAgent() {
+  const messages = [
+    {
+      role: "system",
+      content: `You are Renil, a smart and friendly personal finance assistant. Your role is to help users manage and understand their expenses by answering questions, calculating totals, analyzing spending patterns, and providing suggestions when needed. Today's date is ${new Date().toUTCString()}. Be concise, accurate, and helpful in your responses.`,
+    },
+  ];
+
+  messages.push({
+    role: "user",
+    content: "hi",
+  });
+
   const completion = await groq.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content:
-          `you are Renil, a personal finance assistant, your task is to handle user with their expenses current date ${new Date().toUTCString()}`,
-      },
-      {
-        role: "user",
-        content: "Get total expense from 2023-01-01 to 2023-01-31",
-      },
-    ],
+    messages: messages,
     model: "llama-3.3-70b-versatile",
     tools: [
-        {
-            type: 'function',
-            function: {
-                name: 'getTotalExpense',
-                description: 'Get total expense from date to date',
-                parameters:{
-                    type: 'object',
-                    properties: {
-                        from: {
-                            type: 'string',
-                            description: 'From date to get the expense'
-                        },
-                        to: {
-                            type: 'string',
-                            description: 'To date to get the expense'
-                        }
-                    }
-                }
-            }
-        }
-    ]
+      {
+        type: "function",
+        function: {
+          name: "getTotalExpense",
+          description:
+            "Calculates the total expense within a specified date range.",
+          parameters: {
+            type: "object",
+            properties: {
+              from: {
+                type: "string",
+                description: "Start date of the expense range",
+              },
+              to: {
+                type: "string",
+                description: "End date of the expense range",
+              },
+            },
+            required: ["from", "to"],
+          },
+        },
+      },
+    ],
   });
 
   console.log(JSON.stringify(completion.choices[0], null, 2));
@@ -47,9 +51,65 @@ async function callAgent() {
     return;
   }
 
+  for (const tool of toolCalls) {
+    const functionName = tool.function.name;
+    const functionArgs = tool.function.arguments;
+
+    let result = "";
+    if (functionName === "getTotalExpense") {
+      const result = getTotalExpense(JSON.parse(functionArgs));
+    }
+
+    const completio2 = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: `You are Renil, a smart and friendly personal finance assistant. Your role is to help users manage and understand their expenses by answering questions, calculating totals, analyzing spending patterns, and providing suggestions when needed. Today's date is ${new Date().toUTCString()}. Be concise, accurate, and helpful in your responses.`,
+        },
+        {
+          role: "user",
+          content: "hi",
+        },
+        {
+          role: "tool",
+          constent: result,
+          tool_call_id: tool.id,
+        },
+      ],
+      model: "llama-3.3-70b-versatile",
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "getTotalExpense",
+            description:
+              "Calculates the total expense within a specified date range.",
+            parameters: {
+              type: "object",
+              properties: {
+                from: {
+                  type: "string",
+                  description: "Start date of the expense range",
+                },
+                to: {
+                  type: "string",
+                  description: "End date of the expense range",
+                },
+              },
+              required: ["from", "to"],
+            },
+          },
+        },
+      ],
+    });
+
+    console.log(JSON.stringify("tvtvtyt"));
+    console.log(JSON.stringify(completio2.choices[0], null, 2));
+  }
 }
 callAgent();
 
-function getTotalExpense({from, to}) {
+function getTotalExpense({ from, to }) {
   console.log("calling get total expenses");
+  return "10000";
 }
