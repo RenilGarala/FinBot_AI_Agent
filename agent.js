@@ -1,4 +1,6 @@
 import Groq from "groq-sdk";
+
+const expenseDB = []
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function callAgent() {
@@ -11,7 +13,7 @@ async function callAgent() {
 
   messages.push({
     role: "user",
-    content: "",
+    content: "hey i just bought a macbook for 40000",
   });
 
   while(true){
@@ -40,6 +42,27 @@ async function callAgent() {
             },
           },
         },
+        {
+          type: "function",
+          function: {
+            name: "addExpense",
+            description: "Add new Expense entry to the expense",
+            parameters: {
+              type: "object",
+              properties: {
+                name: {
+                  type: "string",
+                  description: "name of the expense. e.g. Groceries, Transportation, etc.",
+                },
+                amount: {
+                  type: "string",
+                  description: "Amount of the expense in INR",
+                },
+              },
+              required: ["name", "amount"],
+            },
+          },
+        },
       ],
     });
   
@@ -58,7 +81,8 @@ async function callAgent() {
       let result = "";
       if (functionName === "getTotalExpense") {
         result = getTotalExpense(JSON.parse(functionArgs));
-        // console.log(result);
+      } else if (functionName === "addExpense") {
+        result = addExpense(JSON.parse(functionArgs));
       }
   
       messages.push({
@@ -68,12 +92,19 @@ async function callAgent() {
       });
   
       console.log(messages);
+      console.log("DB ====", expenseDB);
     }
   }
 }
 callAgent();
 
 function getTotalExpense({ from, to }) {
-  // console.log("calling get total expenses");
-  return "10000 INR";
+  const expense = expenseDB.reduce((acc, expense) => acc + Number(expense.amount), 0);
+  return `${expense}`;
+}
+
+function addExpense({name, amount}){
+  console.log("adding amount");
+  expenseDB.push({name: name, amount: amount});
+  return "Added to DB";
 }
