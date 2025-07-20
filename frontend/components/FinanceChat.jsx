@@ -39,50 +39,28 @@ export default function FinanceChat() {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto min-h-screen text-white">
-      <h1 className="text-xl font-bold mb-4 pt-5 text-center">
-        💰 Finance Assistant
-      </h1>
-
-      {/* Chat Area */}
-      <div className="bg-gray-800 p-4 rounded-lg h-80 overflow-y-auto space-y-4 border border-gray-700 shadow-inner">
+    <div className="p-6 max-w-2xl mx-auto">
+      <h1 className="text-xl font-bold mb-4">💰 Finance Assistant</h1>
+      <div className="bg-gray-100 p-4 rounded h-80 overflow-y-scroll mb-4">
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${
-              msg.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`max-w-[75%] px-4 py-2 text-sm text-left rounded-xl shadow ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-gray-700 text-white rounded-bl-none"
-              }`}
-            >
-              {msg.content}
-            </div>
+          <div key={i} className={msg.role === "user" ? "text-right" : "text-left"}>
+            <strong>{msg.role?.toUpperCase()}:</strong> {msg.content}
           </div>
         ))}
-        {loading && (
-          <div className="text-left text-gray-400 italic">
-            Assistant is typing...
-          </div>
-        )}
+        {loading && <div className="text-gray-500 italic">Assistant is typing...</div>}
       </div>
-
-      <div className="flex items-center gap-2 mt-4 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 shadow-md focus-within:ring-2 focus-within:ring-blue-500">
+      <div className="flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          className="flex-grow text-sm bg-transparent outline-none placeholder-gray-400 text-white"
+          className="flex-grow p-2 border rounded"
           placeholder="Ask something like 'add expense 500 for food'"
         />
         <button
           onClick={sendMessage}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition-all"
+          className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Send
         </button>
